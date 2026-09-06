@@ -185,15 +185,17 @@ function rememberTrail() {
   }
 }
 
-function integrate(steps: number) {
+function integrate(steps: number): boolean {
   try {
     state = advance(state, steps);
     rememberTrail();
+    return true;
   } catch {
     running = false;
     budget = 0;
     refresh();
     report("数值状态已超出本实验的有效范围，已暂停。请重置或换一个初始条件。");
+    return false;
   }
 }
 
@@ -214,7 +216,7 @@ function step() {
   running = false;
   budget = 0;
   setPlacing(false);
-  integrate(1);
+  if (!integrate(1)) return;
   refresh();
   draw();
   report(

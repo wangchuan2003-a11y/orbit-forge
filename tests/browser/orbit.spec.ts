@@ -122,3 +122,27 @@ test("presets, snapshots, invalid hashes, and PNG export preserve observable sta
     Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
   );
 });
+
+test("single-step boundary failures keep the pause reason and the last valid snapshot", async ({
+  page,
+}) => {
+  const hash =
+    "#v1." +
+    Buffer.from(
+      JSON.stringify({ v: 1, t: 1_000_000_000, b: [[0, 1, 0, 0, 0, 0]] }),
+    ).toString("base64url");
+  await page.goto(`/${hash}`);
+  await expect(page.locator("#ticks")).toHaveText("1000000000");
+  const table = await page.locator("#body-data").textContent();
+  await page.locator("#step").click();
+  await expect(page.locator("#status")).toContainText("数值状态已超出");
+  await expect(page.locator("#status")).not.toContainText("完成第");
+  await expect(page.locator("#ticks")).toHaveText("1000000000");
+  await expect(page.locator("#body-data")).toHaveText(table!);
+  await expect(page.locator("#run-state")).toHaveText("已暂停");
+  // The animation path must retain the same failure reason after it stops.
+  await page.locator("#run").click();
+  await expect(page.locator("#status")).toContainText("数值状态已超出");
+  await expect(page.locator("#run-state")).toHaveText("已暂停");
+  await expect(page.locator("#ticks")).toHaveText("1000000000");
+});
