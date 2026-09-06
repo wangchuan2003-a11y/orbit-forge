@@ -1,5 +1,9 @@
 # Orbit Forge · 轨道实验室
 
+[在线体验](https://wangchuan2003-a11y.github.io/orbit-forge/) · [测试记录](https://github.com/wangchuan2003-a11y/orbit-forge/actions/runs/34048557130)
+
+![轨道实验室实际画面](docs/preview.png)
+
 一个可以加入天体、改变初速度并检查守恒量的二维引力实验。TypeScript、原生 Canvas 和 Vite；无 API、账户或服务端。中文界面，适配桌面与手机。
 
 ## 本地运行
