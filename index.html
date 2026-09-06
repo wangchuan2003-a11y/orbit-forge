@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#080e18" />
+    <meta
+      name="description"
+      content="用真实计算探索轨道：改变初速度，观察引力、能量与三体运动。无需登录的二维轨道实验室。"
+    />
+    <title>Orbit Forge · 轨道实验室</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23080e18'/%3E%3Cellipse cx='32' cy='32' rx='25' ry='13' transform='rotate(-35 32 32)' fill='none' stroke='%23efc781' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='7' fill='%23efc781'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <a href="./" class="brand"
+        ><span class="brand-orbit" aria-hidden="true">◌</span> ORBIT
+        <strong>FORGE</strong></a
+      >
+      <nav>
+        <a href="#model">模型与边界</a
+        ><a
+          href="https://github.com/wangchuan2003-a11y/orbit-forge"
+          target="_blank"
+          rel="noopener"
+          >源码 ↗</a
+        >
+      </nav>
+    </header>
+    <main>
+      <section class="intro">
+        <div>
+          <p class="eyebrow">一个可以亲手改变的宇宙</p>
+          <h1>给它一个速度。<br /><span>让引力接着写。</span></h1>
+        </div>
+        <p class="intro-copy">
+          放下一颗天体，改变它的出发方式。<br />看轨道如何出现，也看守恒量如何变化。<span
+            >二维引力 · 无量纲 · 完全在浏览器中计算</span
+          >
+        </p>
+      </section>
+      <section class="laboratory" aria-label="轨道实验室">
+        <div class="lab-toolbar">
+          <div class="presets" role="group" aria-label="初始系统">
+            <button data-preset="planet" aria-pressed="true">行星绕星</button
+            ><button data-preset="binary" aria-pressed="false">双星共舞</button
+            ><button data-preset="three" aria-pressed="false">三体扰动</button>
+          </div>
+          <span class="model-tag">G = 1 <span>·</span> ε = 0.06</span>
+        </div>
+        <div class="lab-grid">
+          <div class="stage-panel">
+            <div class="stage-heading">
+              <div>
+                <span class="signal" aria-hidden="true"></span
+                ><span id="run-state">运行中</span>
+              </div>
+              <span id="sim-time">t = 0.000</span>
+            </div>
+            <div id="stage" class="stage">
+              <canvas
+                id="universe"
+                tabindex="0"
+                aria-label="二维轨道画布。使用右侧参数表单可无须拖拽添加天体；空格播放或暂停，N 单步。"
+              ></canvas>
+              <div class="stage-caption" aria-hidden="true">
+                <span id="preset-caption">行星与恒星都绕共同质心运动</span
+                ><span>尺寸为识别标记，不代表物理半径</span>
+              </div>
+            </div>
+            <div class="playback">
+              <button id="run" class="primary">暂停</button
+              ><button id="step">单步</button
+              ><button id="reset">重置实验</button>
+              <label
+                >播放
+                <select id="speed">
+                  <option value="0.25">0.25×</option>
+                  <option value="1" selected>1×</option>
+                  <option value="2">2×</option>
+                  <option value="4">4×</option>
+                </select></label
+              >
+              <label class="trail-label"
+                ><input id="trails" type="checkbox" checked />轨迹</label
+              >
+            </div>
+            <div class="view-controls">
+              <label for="view">视野</label
+              ><select id="view">
+                <option value="3">近景 · ±3</option>
+                <option value="5">中景 · ±5</option>
+                <option value="8">远景 · ±8</option>
+                <option value="12">广角 · ±12</option></select
+              ><span>每个数值步固定 Δt = 0.002</span>
+            </div>
+          </div>
+          <aside class="control-panel" aria-label="实验控制与诊断">
+            <div class="panel-heading">
+              <span class="section-label">向系统加入一个变量</span
+              ><span id="body-count">2 / 8</span>
+            </div>
+            <h2>一颗新天体</h2>
+            <p class="muted">
+              质量越大，相互影响越明显。<br />初速度决定它从哪里开始走。
+            </p>
+            <form id="body-form">
+              <label class="mass-field" for="mass"
+                >质量 m
+                <select id="mass">
+                  <option value="0.02">0.02 · 轻小</option>
+                  <option value="0.1" selected>0.1 · 小天体</option>
+                  <option value="0.5">0.5 · 中等</option>
+                  <option value="1">1 · 较大</option>
+                </select></label
+              >
+              <div class="vector-fields">
+                <fieldset>
+                  <legend>位置</legend>
+                  <label
+                    >x
+                    <input
+                      id="new-x"
+                      type="number"
+                      min="-20"
+                      max="20"
+                      step="any"
+                      value="0"
+                      required /></label
+                  ><label
+                    >y
+                    <input
+                      id="new-y"
+                      type="number"
+                      min="-20"
+                      max="20"
+                      step="any"
+                      value="2.5"
+                      required
+                  /></label>
+                </fieldset>
+                <fieldset>
+                  <legend>初速度</legend>
+                  <label
+                    >vₓ
+                    <input
+                      id="new-vx"
+                      type="number"
+                      min="-10"
+                      max="10"
+                      step="any"
+                      value="-1.5"
+                      required /></label
+                  ><label
+                    >vᵧ
+                    <input
+                      id="new-vy"
+                      type="number"
+                      min="-10"
+                      max="10"
+                      step="any"
+                      value="0"
+                      required
+                  /></label>
+                </fieldset>
+              </div>
+              <button id="add-body" type="submit" class="add-button">
+                加入系统 <span>＋</span>
+              </button>
+            </form>
+            <button id="place-mode" class="text-button" aria-pressed="false">
+              或在画布上拖出速度箭头 ↗
+            </button>
+            <p id="place-hint" class="micro">
+              添加会暂停运行，并以新状态重新建立能量基准。
+            </p>
+            <div class="energy-heading">
+              <h2>能量账本</h2>
+              <span>计算值</span>
+            </div>
+            <dl class="energy">
+              <div>
+                <dt>动能 <span>K</span></dt>
+                <dd id="kinetic">—</dd>
+              </div>
+              <div>
+                <dt>势能 <span>U</span></dt>
+                <dd id="potential">—</dd>
+              </div>
+              <div class="total">
+                <dt>总能量 <span>E</span></dt>
+                <dd id="energy">—</dd>
+              </div>
+            </dl>
+            <div class="drift-box">
+              <div>
+                <span>相对基准漂移</span><strong id="drift">0.0000%</strong>
+              </div>
+              <p id="drift-note">(E − E₀) / |E₀|，用于观察数值误差</p>
+            </div>
+            <p class="reference-note">
+              基准 E₀ <strong id="baseline-energy">—</strong><br />重建次数
+              <strong id="baseline-count">0</strong>
+              <span>· 不把主动加入的能量算作误差</span>
+            </p>
+          </aside>
+        </div>
+        <div id="status" class="status" role="status" aria-live="polite">
+          从稳定的双体系统开始。试着暂停，再加入一颗小天体。
+        </div>
+        <div class="export-toolbar">
+          <p>把此刻的条件交给另一个人。</p>
+          <button id="share">复制当前快照链接 ↗</button
+          ><button id="export-png">保存画布 PNG ↓</button>
+        </div>
+      </section>
+      <details class="data-details">
+        <summary>查验系统：总动量、质心与每颗天体的数据</summary>
+        <div class="invariants">
+          <span>总动量 pₓ <strong id="momentum-x">—</strong></span
+          ><span>总动量 pᵧ <strong id="momentum-y">—</strong></span
+          ><span>质心 x <strong id="center-x">—</strong></span
+          ><span>质心 y <strong id="center-y">—</strong></span
+          ><span>积分步数 <strong id="ticks">0</strong></span>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <caption>
+              所有数值均为本模型无量纲数值
+            </caption>
+            <thead>
+              <tr>
+                <th>天体</th>
+                <th>质量</th>
+                <th>x</th>
+                <th>y</th>
+                <th>vₓ</th>
+                <th>vᵧ</th>
+              </tr>
+            </thead>
+            <tbody id="body-data"></tbody>
+          </table>
+        </div>
+      </details>
+      <section id="model" class="model-section">
+        <div>
+          <p class="eyebrow">先说清楚，才值得探索</p>
+          <h2>这是一个模型。<br /><span>它有明确的边界。</span></h2>
+        </div>
+        <div class="model-copy">
+          <p>
+            点质量、二维牛顿引力，设 G =
+            1。这里的长度、时间与质量没有对应到米、秒或真实天体。任何结果都不是天文预测。
+          </p>
+          <p>
+            固定软化长度 ε =
+            0.06，使近距离引力保持有限；势能使用相同软化。天体可以互相穿过，不碰撞、不合并。极近距离相遇仍可能产生较大的数值误差。
+          </p>
+          <p>
+            Velocity Verlet 每一步固定 Δt =
+            0.002。播放速度改变每秒执行的步数，屏幕帧率不改变单步物理。能量漂移是诊断信号，不是稳定性保证。
+          </p>
+          <div class="source-links">
+            <a
+              href="https://science.nasa.gov/solar-system/orbits-and-keplers-laws/"
+              target="_blank"
+              rel="noopener"
+              >NASA · 轨道与引力 ↗</a
+            ><a
+              href="https://www.physics.rutgers.edu/~haule/488/ODE/ODEs.html"
+              target="_blank"
+              rel="noopener"
+              >Rutgers · 数值积分讲义 ↗</a
+            >
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <span>ORBIT FORGE</span><span>条件可以改变，好奇心可以留下。</span
+      ><a
+        href="https://github.com/wangchuan2003-a11y/orbit-forge"
+        target="_blank"
+        rel="noopener"
+        >查看实现与测试 ↗</a
+      >
+    </footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
